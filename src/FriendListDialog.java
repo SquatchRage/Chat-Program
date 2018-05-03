@@ -29,8 +29,8 @@ public class FriendListDialog extends JFrame implements ActionListener, ListSele
     JMenu menu;
     JMenuBar menuBar;
     JMenuItem item, item1, item2;
-    JList<BuddyObject> buddyList;
-    DefaultListModel<BuddyObject> dlm;
+    JList<Buddy> buddyList;
+    DefaultListModel<Buddy> dlm;
     JPanel buttonPanel;
     JButton chatButton;
     JScrollPane sp;
@@ -46,7 +46,6 @@ public class FriendListDialog extends JFrame implements ActionListener, ListSele
         
         this.username = username;
         
-    
         menu = new JMenu("Options");
         menuBar = new JMenuBar();
         menuBar.add(menu);
@@ -66,10 +65,10 @@ public class FriendListDialog extends JFrame implements ActionListener, ListSele
 
         ht = new Hashtable<String, Chatbox>();
         
-        friendLabel = new JLabel("My Buddies");
+        friendLabel = new JLabel("My Friends");
         
-        dlm = new DefaultListModel<BuddyObject>();
-        buddyList = new JList<BuddyObject>(dlm);
+        dlm = new DefaultListModel<Buddy>();
+        buddyList = new JList<Buddy>(dlm);
         buddyList.addListSelectionListener(this);
         sp = new JScrollPane(buddyList);
         
@@ -83,14 +82,12 @@ public class FriendListDialog extends JFrame implements ActionListener, ListSele
         
         cp = getContentPane();
         cp.add(sp, BorderLayout.CENTER);
-       // cp.add(friendLabel, BorderLayout.NORTH);
         cp.add(buttonPanel, BorderLayout.SOUTH);
         
         setUp();
         
     }
-    
-  
+
     
     public void actionPerformed(ActionEvent e)
     {
@@ -99,7 +96,8 @@ public class FriendListDialog extends JFrame implements ActionListener, ListSele
         
         else if (e.getActionCommand().equals("START CHAT"))
         {
-            ht.put(dlm.elementAt(buddyList.getSelectedIndex()).username,
+        	System.out.println("Check : " + dlm.elementAt(buddyList.getSelectedIndex()).username);
+            ht.put(dlm.elementAt(buddyList.getSelectedIndex()).username.trim(),
                    new Chatbox(dlm.elementAt(buddyList.getSelectedIndex()).username, username, cts));
             cts.send("CHAT REQUEST TO|" + dlm.elementAt(buddyList.getSelectedIndex()).username + "|" + username );
         }
@@ -156,12 +154,12 @@ public class FriendListDialog extends JFrame implements ActionListener, ListSele
     
     public void addBuddy(String buddy)
     {
-        BuddyObject newBud = new BuddyObject(buddy, true);
+        Buddy newBud = new Buddy(buddy, true);
         dlm.addElement(newBud);
     }
     
     public void removeBuddy(String buddy){
-    	BuddyObject oldBud = new BuddyObject(buddy, true);
+    	Buddy oldBud = new Buddy(buddy, true);
     	dlm.removeElement(oldBud);
     	
     }
@@ -199,7 +197,15 @@ public class FriendListDialog extends JFrame implements ActionListener, ListSele
     
     public void chatAccepted(String buddy)
     {
-        ht.get(buddy).upperTextArea.append(buddy + " has accepted your chat request.\n");
+    	Chatbox cb;
+    	System.out.println("Buddy is: " + buddy);
+    	if(ht.containsKey(buddy))
+    		System.out.println("spot 1");
+    	else
+    		System.out.println("spot 2");
+    	
+        cb = ht.get(buddy.trim());
+        cb.upperTextArea.append(buddy + " has accepted your chat request.\n");
     }
     
     public void chatDenied(String buddy)

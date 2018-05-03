@@ -24,25 +24,24 @@ public class HashTable extends Hashtable<String, User>
         
         DataOutputStream dos = new DataOutputStream(new BufferedOutputStream
                                                    (new FileOutputStream(userDataFile, false)));
-        
+        // store elements of hashtable
         while(e.hasMoreElements())
         {         
-            fileContents = fileContents + this.get(e.nextElement()).store() + '%';
-            // store each element in hashtable on file
+            fileContents = fileContents + this.get(e.nextElement()).saveList() + '%';
         }
         
         System.out.println("About to be written to file: \n    " + fileContents);
         dos.writeUTF(fileContents);
-        dos.close(); // close the stream
+        dos.close(); 
         
         }
-        catch(FileNotFoundException fnfe)
+        catch(FileNotFoundException fnf)
         {
-            System.out.println("Store failed, file not found.");
+            System.out.println("Save failed, file not found.");
         }
         catch(IOException ioe)
         {
-            System.out.println("IO Exception occurred.");
+            System.out.println("IO Exception occurred in HashTable store.");
         }        
     }
     
@@ -58,28 +57,32 @@ public class HashTable extends Hashtable<String, User>
         
         fileContents = dis.readUTF();
   
-        users = fileContents.split("[\\x25]"); // split each user from file using
-                                               // % delimiter
+        users = fileContents.split("[\\%]"); 
+        System.out.println(users + "im users");
         
         for (int i = 0; i < users.length; i++)
         {
-            userData = users[i].split("[\\x23]"); // split user's data into an array
-                                                  // based on # delimiter
+            userData = users[i].split("[\\#]"); 
             
+           // System.out.println( "im userdata "+userData[i]);
+            
+            /* create a temporary user object using null as the ctc (offline),
+             the first object of the array as the username and the second
+             as the password.*/
             User tempUser = new User(null, userData[0], userData[1]);
-                // create a temporary user object using null as the ctc (offline),
-                // the first object of the array as the username and the second
-                // as the password.
+           
             
+        /*     userData[2]  contains the number of friends, so add number of
+             elements to the 3 constant elements (username, pw, numberofbuddies)
+             to get the index of the first command. Then add commands
+             until reached the end of the string array.
+            */
             for (int j = 3; j < Integer.parseInt(userData[2]) + 3; j++)
                 tempUser.addBuddy(userData[j]);
             
             for (int k = Integer.parseInt(userData[2]) + 3; k < userData.length - 1; k++)
                 tempUser.enqueueCommand(userData[k]);
-            // userData[2] ALWAYS contains the number of buddies, so add number of
-            // elements to the 3 constant elements (username, pw, numberofbuddies)
-            // to get the index of the first command. Then keep adding commands
-            // until reached the end of the string array.
+           
             
             this.put(tempUser.username, tempUser); 
             
@@ -89,17 +92,17 @@ public class HashTable extends Hashtable<String, User>
         catch(FileNotFoundException fnfe)
         {
             try{
-            userDataFile.createNewFile(); // if the file doesn't exist, create it!
+            userDataFile.createNewFile(); // if the file doesn't exist, create one
             System.out.println("No userlist.dat found. Creating new file...");
             }
             catch(IOException io)
             {
-                System.out.println("IO Exception occurred.");
+                System.out.println("IO Exception occurred in Hashtable.");
             }
         }
         catch(IOException ioe)
         {
-            System.out.println("IO Exception occurred.");
+            System.out.println("IO Exception occurred in Hashtable.");
         }
         }
 }

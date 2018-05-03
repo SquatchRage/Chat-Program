@@ -6,6 +6,7 @@ public class ChatGUIUpdater implements Runnable
 {
     FriendListDialog gui;
     static final String NONEXISTENT_USERNAME = "username does not exist";
+    static final String NONEXISTENT_USERNAME_DELETE = "username does not exist";
     static final String BRQ_RECEIVED = "buddy request received";
     static final String BRQ_SENT = "Buddy request sent";
     static final String BUDDY_ACCEPTED = "Buddy accepted";
@@ -16,14 +17,14 @@ public class ChatGUIUpdater implements Runnable
     static final String BUDDY_DELETED = "Buddy Deleted";
     static final String DELETE_REQUEST = "Delete request received";
 
-    String whatDoIDo;
+    String cmd;
     String buddy;
     String message;
     
     public ChatGUIUpdater(FriendListDialog gui)
     {
         this.gui = gui;
-        whatDoIDo = "";
+        cmd = "";
         buddy = "";
         message = "";
                 
@@ -31,7 +32,7 @@ public class ChatGUIUpdater implements Runnable
     
     public void setAction(String cmd)
     {
-        whatDoIDo = cmd;
+        this.cmd = cmd;
     }
     
     public void setBuddy(String b)
@@ -48,28 +49,31 @@ public class ChatGUIUpdater implements Runnable
     
     public void run()
     {   
-        if (whatDoIDo.equals(NONEXISTENT_USERNAME))
+        if (cmd.equals(NONEXISTENT_USERNAME))
             gui.badAddUsername();
         
-        else if (whatDoIDo.equals(BRQ_RECEIVED))
+        else if (cmd.equals(BRQ_RECEIVED))
             gui.buddyRequestReceived(buddy);
         
-        else if (whatDoIDo.equals(BUDDY_ACCEPTED))
+        else if (cmd.equals(BUDDY_ACCEPTED))
             gui.addBuddy(buddy);
         
-        else if (whatDoIDo.equals(CHAT_REQUEST))
+        else if (cmd.equals(CHAT_REQUEST))
             gui.displayChatRequest(buddy);
         
-        else if (whatDoIDo.equals(CHAT_ACCEPTED))
+        else if (cmd.equals(CHAT_ACCEPTED))
             gui.chatAccepted(buddy);
         
-        else if (whatDoIDo.equals(MESSAGE_RECEIVED))
+        else if (cmd.equals(MESSAGE_RECEIVED))
             gui.displayMessage(buddy, message);
         
-        else if (whatDoIDo.equals(BUDDY_DELETED))
+        else if (cmd.equals(BUDDY_DELETED))
         	gui.removeBuddy(buddy);
         
-        else if (whatDoIDo.equals(DELETE_REQUEST))
+        else if (cmd.equals(DELETE_REQUEST))
         	gui.buddyDeletionReceived(buddy);
+        
+        else if (cmd.equals(NONEXISTENT_USERNAME_DELETE))
+        	gui.badDeleteUsername();
     }
 }

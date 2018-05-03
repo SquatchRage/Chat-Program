@@ -12,17 +12,23 @@ import java.net.SocketException;
 
 public class CTC implements Runnable
 {
-    Talker communicator;
-    String clientID,
-           message;
-    SOServer server;
-    Thread ctcThread;
+    String  message;
+	Server server;
+	Thread ctcThread;
+    Talker talker;
+    String clientID;
+  
 
-    CTC(Talker t, String ID, SOServer s)
+    CTC(Talker t, String ID, Server s)
     {
-         communicator = t;
+         talker = t;
          clientID = ID;
          server = s;
+         
+         if(s == null){
+        	 
+        	 throw new RuntimeException("Server null inside CTC contruct.");
+         }
          
          Thread ctcThread = new Thread(this);
          ctcThread.start();
@@ -47,6 +53,13 @@ public class CTC implements Runnable
                     System.out.println(clientID + " successfully logged out");
                     server.userList.remove(clientID); 
                 }
+
+                
+                else if (message.startsWith("REGISTER"))
+                {
+                    System.out.println("User attempting to register");
+                    register();         
+                }
                 
                 else if (message.startsWith("LOGIN"))
                 {
@@ -54,25 +67,19 @@ public class CTC implements Runnable
                     userLogin();
                 }
                 
-                else if (message.startsWith("REGISTER"))
-                {
-                    System.out.println("User attempting to register");
-                    doRegister();         
-                }
-                
                 else if (message.startsWith("BUDDY REQUEST TO"))
                 {
-                    processBuddyRequest(message);
+                    processFriendRequest(message);
                 }
                 
                 else if (message.startsWith("BUDDY ACCEPTED"))
                 {
-                    buddyUp(message);
+                    friendAdded(message);
                 }
                 
                 else if (message.startsWith("DELETE BUDDY"))
                 {
-                    buddyDown(message);
+                    friendDeleted(message);
                 }
                 
                 else if (message.startsWith("CHAT REQUEST TO"))
@@ -82,12 +89,12 @@ public class CTC implements Runnable
                 
                 else if (message.startsWith("CHAT REQUEST ACCEPTED"))
                 {
-                    chatAccepted(message);
+                    chatRequestAccepted(message);
                 }
                 
                 else if (message.startsWith("CHAT REQUEST DENIED"))
                 {
-                    chatDenied(message);
+                    chatRequestDenied(message);
                 }
                 
                 else if (message.startsWith("CHAT TO"))
@@ -102,7 +109,7 @@ public class CTC implements Runnable
     {
         try 
         {
-            communicator.send(message);
+            talker.send(message);
         } catch (IOException e) 
         {
             e.printStackTrace();
@@ -115,7 +122,7 @@ public class CTC implements Runnable
         
         try 
         {
-            message = communicator.receive();
+            message = talker.receive();
         } catch (IOException e) 
         {
             e.printStackTrace();
@@ -126,7 +133,7 @@ public class CTC implements Runnable
     
     public void setUserID(String newID)
     {
-        communicator.setUserID(newID); // change name in talker for debugging
+        talker.setUserID(newID); // change name in talker for debugging
         clientID = newID;
     }
     
@@ -135,12 +142,12 @@ public class CTC implements Runnable
         return clientID;
     }
     
+    //Message delimiter is |
     private boolean userLogin()
     {
         boolean successfulLogin = false;
         
-        String[] messageContents = message.split("[\\x7C]");
-            // splits the message based on "\" delimiter
+        String[] messageContents = message.split("[\\|]");
         
         if(server.userList.containsKey(messageContents[1]))
         {
@@ -152,12 +159,12 @@ public class CTC implements Runnable
             if (userpw.equals(messageContents[2]))
             {
                 successfulLogin = true;
-                server.userList.get(messageContents[1]).userCTC = this;
+                temp.userCTC = this;
                 this.send("SUCCESSFUL LOGIN|" + messageContents[1]);
                 
                 for(int i = 0; i < temp.friendList.size(); i++){
              	   
-             	   this.send("FRIEND LIST- " + temp.friendList.get(i));
+             	   this.send("FRIEND LIST| " + temp.friendList.get(i));
                 }
             }
             
@@ -171,32 +178,34 @@ public class CTC implements Runnable
         return successfulLogin;
     }
     
-    private void doRegister()
+    private void register()
     {
         boolean successfulReg = false;
         
-        String[] messageContents = message.split("[\\x7C]");
-            // parse string by '|' delimiter into array 
+        String[] messageContents = message.split("[\\|]");
         
-        System.out.println("Username: " + messageContents[1]
-                         + " Password: " + messageContents[2]);
+        System.out.println("Username: " + messageContents[1] + " Password: " + messageContents[2]);
         
-        if (!server.userList.containsKey(messageContents[1]))
-        {
+        /*construct a new user using the ctc (online status), username and pw
+        change the anon ctc to the user's ctc
+        add the new User to the hashtable
+        if the username is not found in the hashtable,
+        then the username can be created.*/
+
+
+        if (!server.userList.containsKey(messageContents[1])){
+        
             
-            User userObject = new User(this, messageContents[1], messageContents[2]);
-                // construct a new user using the ctc (online status), username and pw
+            User user = new User(this, messageContents[1], messageContents[2]);
             
-            this.setUserID(messageContents[1]); // change the anon ctc to the user's ctc
+            this.setUserID(messageContents[1]); 
             
-            server.userList.put(userObject.username, userObject);
-                // add the new User to the hashtable
+            server.userList.put(user.username, user);
             
             server.userList.store("userlist.dat");
             
             successfulReg = true;
-            // if the username is not found in the hashtable,
-            // then the username can be created.
+            
         }
         
         if(successfulReg)
@@ -212,9 +221,9 @@ public class CTC implements Runnable
         }
     }
     
-    public void processBuddyRequest(String message)
+    public void processFriendRequest(String message)
     {
-        String[] messageContents = message.split("[\\x7C]");
+        String[] messageContents = message.split("[\\|]");
             // the format is always "buddy request to|destination|sender"
         
         if (!server.userList.containsKey(messageContents[1]))
@@ -233,9 +242,19 @@ public class CTC implements Runnable
         }
     }
     
-    public void buddyUp(String msg)
+    public void processDeleteRequest(String message)
     {
-        String[] messageContents = msg.split("[\\x7C]");
+        String[] messageContents = message.split("[\\|]");
+        
+        if (!server.userList.containsKey(messageContents[1]))
+            this.send("DELETE FAILED USER DOES NOT EXIST");
+        
+      
+    }
+    
+    public void friendAdded(String msg)
+    {
+        String[] messageContents = msg.split("[\\|]");
             // format is "BUDDY ACCEPTED|senderofreq|receiverofreq"
         
         server.userList.get(messageContents[1]).addBuddy(messageContents[2]);
@@ -251,31 +270,46 @@ public class CTC implements Runnable
         server.userList.store("userlist.dat");   
     }
     
-    public void buddyDown(String msg)
+    public void friendDeleted(String msg)
     {
-        String[] messageContents = msg.split("[\\x7C]");
+        String[] messageContents = msg.split("[\\|]");
             // format is "BUDDY DELETED|senderofreq|receiverofreq"
         
-        server.userList.get(messageContents[1]).removeBuddy(messageContents[2]);
         server.userList.get(messageContents[2]).removeBuddy(messageContents[1]);
-        
-       
-        
+        server.userList.get(messageContents[1]).removeBuddy(messageContents[2]);
+
         server.userList.store("userlist.dat");   
     }
     
-    
+    // dying here, but why?-----------------Works on registration, but fails if user logins in a 2nd time. Issue w/List in User?
     public void forwardChatRequest(String msg)
-    {
-        String[] messageContents = msg.split("[\\x7c]");
+    {   
+    	String[] messageContents;
+    	if(msg == null){
+    		
+    		throw new IllegalArgumentException("CTC.forwardChatRequest(): msg cannot be null");
+    	}
+    	User temp;
+    	messageContents = msg.split("[\\|]");
             // format is "CHAT REQUEST TO|recipient|sender
+    	if(server.userList.containsKey(messageContents[1].trim()))
+    		System.out.println(messageContents[1] + " im 1   " + messageContents[2] + " im 2" );
+    	else
+    		System.out.println("I am user list" +server.userList);
         
-        server.userList.get(messageContents[1]).userCTC.send("CHAT REQUEST FROM|" + messageContents[2]); 
+        temp = server.userList.get(messageContents[1].trim());
+        System.out.println("I am temp" + temp + "\n" + messageContents[1]);
+        
+        CTC ctc = temp.userCTC;
+        //server.userList.get(messageContents[1]).userCTC.send("CHAT REQUEST FROM|" + messageContents[2]); 
+        System.out.println("I am ctc" + ctc);
+
+        ctc.send("CHAT REQUEST FROM|" + messageContents[2]); 
     }
     
-    public void chatAccepted(String msg)
+    public void chatRequestAccepted(String msg)
     {
-        String[] messageContents = msg.split("[\\x7c]");
+        String[] messageContents = msg.split("[\\|]");
             // format is "CHAT REQUEST ACCEPTED|OneWhoAccepted|OneWhoSentReq
         
         server.userList.get(messageContents[2]).userCTC.send("CHAT ACCEPTED|" + messageContents[1]);
@@ -283,19 +317,17 @@ public class CTC implements Runnable
         
     }
     
-    public void chatDenied(String msg)
+    public void chatRequestDenied(String msg)
     {
-        String[] messageContents = msg.split("[\\x7c]");
-            // format is "CHAT REQUEST DENIED|OneWhoAccepted|OneWhoSentReq
+        String[] messageContents = msg.split("[\\|]");
         
         server.userList.get(messageContents[2]).userCTC.send("CHAT DENIED|" + messageContents[1]);
-            // send the okay to the person who sent the request
         
     }
     
     public void forwardMessage(String msg)
     {
-        String[] messageContents = msg.split("[\\x7c]");
+        String[] messageContents = msg.split("[\\|]");
         // format is "CHAT TO|Destination|Sender|ActualMessage
     
         server.userList.get(messageContents[1]).userCTC.send("CHAT FROM|" + messageContents[2] +

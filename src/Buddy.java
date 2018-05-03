@@ -1,10 +1,10 @@
 
-public class BuddyObject 
+public class Buddy 
 {
     String username;
     boolean isOnline;
     
-    public BuddyObject(String username, boolean isOnline)
+    public Buddy(String username, boolean isOnline)
     {
         this.username = username;
         this.isOnline = isOnline;

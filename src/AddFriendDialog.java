@@ -25,7 +25,7 @@ public class AddFriendDialog extends JDialog implements ActionListener, Document
     JPanel     textFieldPanel,
                buttonPanel;
     
-    CTS localcts;
+    CTS cts;
     
   
     Container cp;
@@ -33,7 +33,7 @@ public class AddFriendDialog extends JDialog implements ActionListener, Document
     
     public AddFriendDialog(CTS cts, String myUsername)
     {
-        localcts = cts;
+        this.cts = cts;
         this.myUsername = myUsername;
         
         message = new JLabel("Enter the name of the friend you would like to add!");
@@ -75,7 +75,7 @@ public class AddFriendDialog extends JDialog implements ActionListener, Document
                 
                 else
                 {
-                    localcts.send("BUDDY REQUEST TO|" + friendNameTextfield.getText()
+                    cts.send("BUDDY REQUEST TO|" + friendNameTextfield.getText()
                             + "|" + myUsername);
                     dispose();
                 }

@@ -13,40 +13,37 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Hashtable;
 
-public class SOServer
+public class Server
 {
-    ServerSocket     ss;
-    Socket           s;
+    ServerSocket     serverSocket;
+    Socket           regularSocket;
     Talker           newUser;
     String           userID;
-    
     File userListFile;
     DataInputStream dis;
     DataOutputStream dos;
     int numberOfUsers = 0;
-    
     CTC tempCTC;    
     HashTable userList;
+    int count = 0;
     
-    int clientCounter = 0;
-    
-    SOServer()
+    Server()
     {
-
+    	// creates connection, hashtables and loads userList
         try{
-        ss = new ServerSocket(12345);
-        userList = new HashTable(); // create a hashtable
-                                                  // to hold CTCs
+        serverSocket = new ServerSocket(12345);
+        userList = new HashTable();                                    
         userList.load("userlist.dat");
         
+        // constantly accpets incoming and counts number of users (on client side) that have logged on
         while(true)
         {
-            System.out.println("No. of clients since startup: " + clientCounter);
-            s  = ss.accept(); // get a socket from incoming connection
-            clientCounter++;
-            userID = new String("User " + clientCounter);
-            tempCTC = new CTC(new Talker(s, userID), userID, this);
-                // create anonymous ctc for to connect and get username
+            System.out.println("No. of clients since startup: " + count);
+            regularSocket  = serverSocket.accept(); 
+            count++;
+            userID = new String("User " + count);
+            tempCTC = new CTC(new Talker(regularSocket, userID), userID, this);
+                
         }
         }
         catch(IOException ioe)

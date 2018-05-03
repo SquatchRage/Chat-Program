@@ -6,8 +6,14 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Toolkit;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -19,21 +25,17 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 
-public class Chatbox extends JFrame implements ActionListener, DocumentListener
+public class Chatbox extends JFrame implements ActionListener, DocumentListener, DropTargetListener
 {
     String chattingWith;
     String  user;
-    
     CTS cts;
-    
     JLabel friendLabel;
-    
     JPanel buttonPanel;
     JPanel fieldPanel;
     JPanel backPanel;
-    JTextArea upperTextArea,
-              lowerTextArea;
-    
+    JTextArea upperTextArea;
+    JTextArea lowerTextArea;
     JScrollPane sp;
     JScrollPane sp1;
     JButton sendButton;
@@ -78,7 +80,7 @@ public class Chatbox extends JFrame implements ActionListener, DocumentListener
    		gbc.gridx = 0;
    		gbc.gridy = 0;
    		gbc.weightx = 1;
-   		fieldPanel.add(upperTextArea, gbc);
+   		fieldPanel.add(sp, gbc);
 
    		gbc.gridx = 0;
    		gbc.gridy = 2;
@@ -118,6 +120,10 @@ public class Chatbox extends JFrame implements ActionListener, DocumentListener
             upperTextArea.append(user + "| " + lowerTextArea.getText() + "\n");
             cts.send("CHAT TO|" + chattingWith + "|" + user + "|" + lowerTextArea.getText() + "\n");
             lowerTextArea.setText("");
+            
+          
+           	        lowerTextArea.requestFocus();
+          
         }   
         
     }
@@ -146,4 +152,34 @@ public class Chatbox extends JFrame implements ActionListener, DocumentListener
     	
     	new Chatbox(null, null, null);
     }
+
+	@Override
+	public void dragEnter(DropTargetDragEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void dragExit(DropTargetEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void dragOver(DropTargetDragEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void drop(DropTargetDropEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void dropActionChanged(DropTargetDragEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
 }

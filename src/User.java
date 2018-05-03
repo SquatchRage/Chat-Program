@@ -8,46 +8,45 @@ import java.util.Vector;
 
 public class User
 {
-    String    username,
-              password;
-    
+    String    username;
+    String    password;
     UserQueue commandQueue;
     CTC userCTC;
     Vector<String> friendList;
     File userFile;
     DataOutputStream dos;
     
-    public User(CTC ctc, String uid, String pw)
+    // constructor will be used only during registration,
+    // so we can assume that the user is online immediately
+    public User(CTC ctc, String userName, String passWord)
     {
-        username = uid;
-        password = pw;
+        username = userName;
+        password = passWord;
         userCTC = ctc;
-            // constructor will be used only during registration,
-            // so we can assume that the user is online immediately
-        
         friendList = new Vector<String>();
         commandQueue = new UserQueue();
     }
     
+    // add friend to list
     public void addBuddy(String buddy)
     {
         friendList.add(buddy);
     }
     
+    //remove friend from list -- seems to be only working when the server is closed and re-opened
     public void removeBuddy(String buddy)
     {
         friendList.remove(buddy);
         
     }
     
-    public String store()
+    //store friends
+    public String saveList()
     {       
         String userContents = "";
-        userContents = userContents + username + '#'
-                                    + password + '#';
+        userContents = userContents + username + '#' + password + '#';
         
         userContents = userContents + friendList.size() + '#';
-            // store the number of buddies for parsing later
         
         for (int i = 0; i < friendList.size(); i++)
             userContents = userContents + friendList.elementAt(i) + '#';

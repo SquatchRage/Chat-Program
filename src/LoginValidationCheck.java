@@ -2,7 +2,7 @@
 public class LoginValidationCheck implements Runnable
 {
     Login login;
-    String whatDoIDo;
+    String cmd;
     static final String CLOSE_DIALOG = "close";
     static final String USERNAME_TAKEN = "username taken";
     static final String INVALID_ID = "invalid id";
@@ -10,23 +10,23 @@ public class LoginValidationCheck implements Runnable
     public LoginValidationCheck(Login pwd)
     {
         login = pwd;
-        whatDoIDo = "";
+        cmd = "";
     }
     
     public void setAction(String action)
     {
-        whatDoIDo = action;
+        cmd = action;
     }
     
     public void run()
     {   
-        if (whatDoIDo.equals(CLOSE_DIALOG))
+        if (cmd.equals(CLOSE_DIALOG))
             login.dispose();
 
-        else if (whatDoIDo.equals(USERNAME_TAKEN))
+        else if (cmd.equals(USERNAME_TAKEN))
             login.warningLabel.setText("Username already exists. Please choose a different one.");
             
-        else if (whatDoIDo.equals(INVALID_ID))
+        else if (cmd.equals(INVALID_ID))
             login.warningLabel.setText("Invalid username or password. Please try again.");
     }
 }
